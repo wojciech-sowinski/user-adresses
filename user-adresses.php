@@ -20,3 +20,8 @@ if (!defined('ABSPATH')) {
 define('USER_ADRESSES_VERSION', '1.0.0');
 define('USER_ADRESSES_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('USER_ADRESSES_PLUGIN_URL', plugin_dir_url(__FILE__));
+
+if (is_admin()) {
+    require_once USER_ADRESSES_PLUGIN_DIR . 'src/admin/AdminPage.php';
+    new UserAddresses_AdminPage();
+}
