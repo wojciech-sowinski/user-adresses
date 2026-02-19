@@ -21,6 +21,8 @@ define('USER_ADRESSES_VERSION', '1.0.0');
 define('USER_ADRESSES_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('USER_ADRESSES_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+require_once USER_ADRESSES_PLUGIN_DIR . 'src/UserAddressRepository.php';
+
 if (is_admin()) {
     require_once USER_ADRESSES_PLUGIN_DIR . 'src/admin/AdminPage.php';
     new UserAddresses_AdminPage();
