@@ -17,9 +17,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('USER_ADRESSES_VERSION', '1.3.7');
+define('USER_ADRESSES_VERSION', '1.3.9');
 define('USER_ADRESSES_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('USER_ADRESSES_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('USER_ADRESSES_OPTION_ALLOWED_ROLES', 'user_addresses_allowed_roles');
 
 require_once USER_ADRESSES_PLUGIN_DIR . 'src/UserAddressRepository.php';
 require_once USER_ADRESSES_PLUGIN_DIR . 'src/front/Shortcodes.php';

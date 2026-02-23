@@ -30,15 +30,8 @@ class UserAddresses_Shortcodes {
      */
     private $repository;
 
-    /**
-     * Role, które mają dostęp do przycisków „Moje adresy” (shortcode manage + checkout).
-     * Użytkownik musi mieć przynajmniej jedną z tych ról, żeby zobaczyć funkcjonalność.
-     *
-     * @var array<int, string>
-     */
-    private $allowed_roles = ['b2b_', 'administrator_'];
-
-    const SAVE_ACTION = 'user_addresses_save_address';
+    const SAVE_ACTION   = 'user_addresses_save_address';
+    const DELETE_ACTION = 'user_addresses_delete_address';
 
     public function __construct() {
         $this->repository = new UserAddressRepository();
@@ -46,6 +39,8 @@ class UserAddresses_Shortcodes {
         add_shortcode(self::SHORTCODE_CHECKOUT, [$this, 'render_checkout']);
         add_action('admin_post_' . self::SAVE_ACTION, [$this, 'handle_save_address']);
         add_action('admin_post_nopriv_' . self::SAVE_ACTION, [$this, 'handle_save_address_nopriv']);
+        add_action('admin_post_' . self::DELETE_ACTION, [$this, 'handle_delete_address']);
+        add_action('admin_post_nopriv_' . self::DELETE_ACTION, [$this, 'handle_delete_address_nopriv']);
     }
 
     /**
@@ -70,7 +65,8 @@ class UserAddresses_Shortcodes {
         $this->ensure_default_addresses($user_id, $addresses);
         $addresses = $this->repository->get_additional_addresses($user_id);
 
-        $saved = isset($_GET['user_addresses_saved']) && $_GET['user_addresses_saved'] === '1';
+        $saved   = isset($_GET['user_addresses_saved']) && $_GET['user_addresses_saved'] === '1';
+        $deleted = isset($_GET['user_addresses_deleted']) && $_GET['user_addresses_deleted'] === '1';
 
         ob_start();
         ?>
@@ -78,9 +74,9 @@ class UserAddresses_Shortcodes {
             <?php if ($saved) : ?>
                 <p class="user-addresses-manage__notice user-addresses-manage__notice--success"><?php esc_html_e('Adres zapisany.', 'user-adresses'); ?></p>
             <?php endif; ?>
-            <button type="button" class="user-addresses-manage__toggle btn--orange" aria-controls="user-addresses-panel" aria-expanded="false">
-                <?php esc_html_e('Moje adresy', 'user-adresses'); ?>
-            </button>
+            <?php if ($deleted) : ?>
+                <p class="user-addresses-manage__notice user-addresses-manage__notice--success"><?php esc_html_e('Adres usunięty.', 'user-adresses'); ?></p>
+            <?php endif; ?>
             <?php $this->render_addresses_panel($addresses, $user_id); ?>
             <?php $this->render_add_address_modal(); ?>
         </div>
@@ -120,7 +116,7 @@ class UserAddresses_Shortcodes {
         $billing_assigned  = false;
         $shipping_assigned = false;
         ?>
-        <div id="user-addresses-panel" class="user-addresses-manage__panel" aria-hidden="true" style="display: none;">
+        <div id="user-addresses-panel" class="user-addresses-manage__panel" aria-hidden="false">
             <ul class="user-addresses-manage__list">
                 <?php
                 foreach ($addresses as $address) {
@@ -199,7 +195,18 @@ class UserAddresses_Shortcodes {
                 <div class="user-addresses-manage__card-body user-addresses-card"><?php echo $this->get_address_card_body_html($address); ?></div>
                 <div class="user-addresses-manage__card-meta">
                     <div class="user-addresses-manage__card-actions">
-                        <button type="button" class="user-addresses-edit button--orange"><?php esc_html_e('Edytuj', 'user-adresses'); ?></button>
+                        <button type="button"  class="user-addresses-edit button--link"><?php esc_html_e('Edytuj', 'user-adresses'); ?></button>
+                        <?php
+                        $addr_id = isset($address['id']) ? (string) $address['id'] : '';
+                        if ($addr_id !== '') {
+                            $delete_action = admin_url('admin-post.php?action=' . self::DELETE_ACTION);
+                            ?>
+                        <form method="post" action="<?php echo esc_url($delete_action); ?>" class="user-addresses-delete-form" style="display: inline;" data-confirm="<?php echo esc_attr(__('Czy na pewno chcesz usunąć ten adres?', 'user-adresses')); ?>">
+                            <?php wp_nonce_field(self::DELETE_ACTION, 'user_addresses_delete_nonce'); ?>
+                            <input type="hidden" name="address_id" value="<?php echo esc_attr($addr_id); ?>" />
+                            <button type="submit" style="color:red;opacity:0.5;" class="user-addresses-delete"><?php esc_html_e('Usuń', 'user-adresses'); ?></button>
+                        </form>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -274,6 +281,64 @@ class UserAddresses_Shortcodes {
         $order  = [ 'first_name', 'last_name', 'company', 'address_1', 'address_2', 'postcode', 'city', 'country', 'phone' ];
         $out    = [];
         foreach ($order as $key) {
+            if ($key === 'last_name' || $key === 'address_2' || $key === 'city') {
+                continue;
+            }
+            if ($key === 'first_name') {
+                $labelFirst = $labels['first_name'] ?? 'first_name';
+                $labelLast  = $labels['last_name'] ?? 'last_name';
+                $first      = trim((string) ($address['first_name'] ?? ''));
+                $last       = trim((string) ($address['last_name'] ?? ''));
+                $out[]      = '<div class="user-addresses-card__row user-addresses-card__row--name">'
+                    . '<span class="user-addresses-card__field">'
+                    . '<span class="user-addresses-card__label">' . esc_html($labelFirst) . '</span>'
+                    . '<span class="user-addresses-card__value">' . esc_html($first) . '</span>'
+                    . '</span>'
+                    . '<span class="user-addresses-card__field">'
+                    . '<span class="user-addresses-card__label">' . esc_html($labelLast) . '</span>'
+                    . '<span class="user-addresses-card__value">' . esc_html($last) . '</span>'
+                    . '</span>'
+                    . '</div>';
+                continue;
+            }
+            if ($key === 'address_1') {
+                $label1 = $labels['address_1'] ?? 'address_1';
+                $label2 = $labels['address_2'] ?? 'address_2';
+                $val1   = trim((string) ($address['address_1'] ?? ''));
+                $val2   = trim((string) ($address['address_2'] ?? ''));
+                if ($val1 !== '' || $val2 !== '') {
+                    $out[] = '<div class="user-addresses-card__row user-addresses-card__row--name">'
+                        . '<span class="user-addresses-card__field">'
+                        . '<span class="user-addresses-card__label">' . esc_html($label1) . '</span>'
+                        . '<span class="user-addresses-card__value">' . esc_html($val1) . '</span>'
+                        . '</span>'
+                        . '<span class="user-addresses-card__field">'
+                        . '<span class="user-addresses-card__label">' . esc_html($label2) . '</span>'
+                        . '<span class="user-addresses-card__value">' . esc_html($val2) . '</span>'
+                        . '</span>'
+                        . '</div>';
+                }
+                continue;
+            }
+            if ($key === 'postcode') {
+                $labelPost = $labels['postcode'] ?? 'postcode';
+                $labelCity = $labels['city'] ?? 'city';
+                $valPost   = trim((string) ($address['postcode'] ?? ''));
+                $valCity   = trim((string) ($address['city'] ?? ''));
+                if ($valPost !== '' || $valCity !== '') {
+                    $out[] = '<div class="user-addresses-card__row user-addresses-card__row--name">'
+                        . '<span class="user-addresses-card__field">'
+                        . '<span class="user-addresses-card__label">' . esc_html($labelPost) . '</span>'
+                        . '<span class="user-addresses-card__value">' . esc_html($valPost) . '</span>'
+                        . '</span>'
+                        . '<span class="user-addresses-card__field">'
+                        . '<span class="user-addresses-card__label">' . esc_html($labelCity) . '</span>'
+                        . '<span class="user-addresses-card__value">' . esc_html($valCity) . '</span>'
+                        . '</span>'
+                        . '</div>';
+                }
+                continue;
+            }
             $value = trim((string) ($address[ $key ] ?? ''));
             if ($value === '') {
                 continue;
@@ -526,6 +591,40 @@ class UserAddresses_Shortcodes {
     }
 
     /**
+     * Przekierowanie gdy niezalogowany próbuje usunąć adres.
+     */
+    public function handle_delete_address_nopriv(): void {
+        wp_safe_redirect(wp_login_url(wp_get_referer() ?: admin_url()));
+        exit;
+    }
+
+    /**
+     * Obsługa usunięcia adresu (POST): weryfikacja nonce, usunięcie, przekierowanie.
+     */
+    public function handle_delete_address(): void {
+        if (!is_user_logged_in()) {
+            wp_safe_redirect(wp_login_url(wp_get_referer() ?: admin_url()));
+            exit;
+        }
+        if (!isset($_POST['user_addresses_delete_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['user_addresses_delete_nonce'])), self::DELETE_ACTION)) {
+            wp_safe_redirect(wp_get_referer() ?: home_url('/'));
+            exit;
+        }
+        if (!$this->user_can_see_addresses()) {
+            wp_safe_redirect(wp_get_referer() ?: home_url('/'));
+            exit;
+        }
+        $address_id = isset($_POST['address_id']) ? sanitize_text_field(wp_unslash($_POST['address_id'])) : '';
+        $redirect_to = wp_get_referer() ?: home_url('/');
+        if ($address_id !== '') {
+            $this->repository->delete_additional_address(get_current_user_id(), $address_id);
+        }
+        $redirect_to = add_query_arg('user_addresses_deleted', '1', $redirect_to);
+        wp_safe_redirect($redirect_to);
+        exit;
+    }
+
+    /**
      * Jednolinijkowy opis adresu (address_1, city, postcode).
      *
      * @param array<string, mixed> $address
@@ -570,7 +669,7 @@ class UserAddresses_Shortcodes {
     }
 
     /**
-     * Czy bieżący użytkownik ma prawo do widoku „Moje adresy” (ma przynajmniej jedną z ról w $allowed_roles).
+     * Czy bieżący użytkownik ma prawo do widoku „Moje adresy” (ma przynajmniej jedną z ról wybranych w ustawieniach).
      *
      * @return bool
      */
@@ -579,7 +678,11 @@ class UserAddresses_Shortcodes {
         if (empty($user->ID)) {
             return false;
         }
-        return (bool) array_intersect((array) $user->roles, $this->allowed_roles);
+        $allowed_roles = get_option(USER_ADRESSES_OPTION_ALLOWED_ROLES, ['b2b_', 'administrator']);
+        if (!is_array($allowed_roles)) {
+            $allowed_roles = [];
+        }
+        return (bool) array_intersect((array) $user->roles, $allowed_roles);
     }
 
     /**
@@ -592,7 +695,7 @@ class UserAddresses_Shortcodes {
      */
     public function render_checkout(array $atts): string {
         $atts = shortcode_atts([
-            'title' => __('Moje adresy', 'user-adresses'),
+            'title' => __('Wypełnij adresem', 'user-adresses'),
             'class' => '',
         ], $atts, self::SHORTCODE_CHECKOUT);
 
@@ -608,8 +711,8 @@ class UserAddresses_Shortcodes {
 
         ob_start();
         ?>
-        <div class="user-addresses-checkout <?php echo esc_attr($atts['class']); ?>">
-            <button type="button" class="user-addresses-checkout__toggle btn--orange" aria-controls="user-addresses-checkout-modal" aria-expanded="false">
+        <div style="display:inline-block;" class="user-addresses-checkout <?php echo esc_attr($atts['class']); ?>">
+            <button type="button" style="color:#EA6320; margin-left:0.25rem;" class="user-addresses-checkout__toggle button--link" aria-controls="user-addresses-checkout-modal" aria-expanded="false">
                 <?php echo esc_html($atts['title']); ?>
             </button>
             <?php $this->render_checkout_modal($addresses, $manage_url); ?>

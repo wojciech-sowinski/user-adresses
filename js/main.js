@@ -1,8 +1,6 @@
 (function ($) {
     'use strict';
 
-    var panelId = 'user-addresses-panel';
-    var toggleSelector = '.user-addresses-manage__toggle';
     var addModalId = 'user-addresses-add-modal';
     var addFormId = 'user-addresses-add-form';
     var checkoutModalId = 'user-addresses-checkout-modal';
@@ -108,18 +106,6 @@
     }
 
     $(document).ready(function () {
-        // Panel rozsuwany (Moje adresy)
-        $(document).on('click', toggleSelector, function () {
-            var $btn = $(this);
-            var $panel = $('#' + panelId);
-            if (!$panel.length) return;
-            $panel.slideToggle(function () {
-                var isExpanded = $panel.is(':visible');
-                $btn.attr('aria-expanded', isExpanded);
-                $panel.attr('aria-hidden', !isExpanded);
-            });
-        });
-
         // Otwórz modal „Dodaj adres”
         $(document).on('click', '.user-addresses-modal__add', openAddModal);
 
@@ -178,6 +164,14 @@
             var isCurrentBilling = $card.attr('data-is-current-billing') === '1';
             var isCurrentShipping = $card.attr('data-is-current-shipping') === '1';
             openEditModal(address, isCurrentBilling, isCurrentShipping);
+        });
+
+        // Usuń adres – potwierdzenie przed wysłaniem formularza
+        $(document).on('submit', '.user-addresses-delete-form', function (e) {
+            var msg = $(this).attr('data-confirm') || 'Czy na pewno chcesz usunąć ten adres?';
+            if (!confirm(msg)) {
+                e.preventDefault();
+            }
         });
 
     });

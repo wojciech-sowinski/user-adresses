@@ -117,18 +117,31 @@ $ua-border-light: #ddd;
 .user-addresses-manage__card-actions,
 .user-addresses-checkout-modal__card-actions {
     display: flex;
+    justify-content: end;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    // gap: 1rem;
     margin-top: 1rem;
 
     button,
     .button {
-        padding: 0.5rem 1rem;
+      
         font-size: 0.875rem;
         font-weight: 400;
-        border-radius: 1rem;
-        background: $ua-btn-orange !important;
-        color: #fff;
+border-radius: 0;
+        &:first-child {
+            padding-left: 0;
+            border-right: 1px solid #ebe9e6;
+            padding-right: 1rem;
+            margin-right: 1rem;
+        }
+        &:last-child {
+            padding-right: 0;
+            margin-right: 0;
+            border-right: none;
+        }
+  
+        // background:  !important;
+        color:#000;
     }
 }
 
@@ -141,17 +154,29 @@ $ua-border-light: #ddd;
         &:last-child {
             margin-bottom: 0.25rem;
         }
+
+        &--name {
+            display: flex;
+            gap: 1rem;
+        }
+    }
+
+    &__field {
+        flex: 1;
+        min-width: 0;
     }
 
     &__label {
         display: block;
-        font-size: 12px;
+        font-size: 10px;
+        font-weight: 600;
         color: #666;
         margin-bottom: 0rem !important;
     }
 
     &__value {
         display: block;
+        font-weight: 400;
     }
 }
 
@@ -248,7 +273,7 @@ $ua-border-light: #ddd;
     }
 
     &__body {
-        padding: 1rem 1.25rem;
+        padding:0;
     }
 
     &__form {
@@ -258,7 +283,8 @@ $ua-border-light: #ddd;
 
             .label {
                 display: block;
-                margin-bottom: 0.5rem;
+                // margin-bottom: 0.5rem;
+                margin-bottom: 0;
                 font-weight: 600;
             }
 
@@ -292,14 +318,10 @@ $ua-border-light: #ddd;
 
             &.form-row-address-wide {
                 display: block;
+
             }
 
-            
-                
-            
         }
-
-       
 
         label {
             display: block;
@@ -338,6 +360,9 @@ $ua-border-light: #ddd;
 // =============================================================================
 // Shortcode zarządzania: panel + przycisk
 // =============================================================================
+.user-addresses-manage__actions{
+    padding: 0 0 1.5rem !important;
+}
 .user-addresses-manage {
     .button {
         background: $ua-btn-orange !important;
@@ -349,14 +374,17 @@ $ua-border-light: #ddd;
             flex-wrap: wrap;
             gap: 1rem;
             list-style: none;
-            padding: 1.5rem 0 !important;
+            padding: 1.5rem 0 0 !important;
 
             li {
                 min-width: 350px;
 
                 .user-addresses-card__value {
-                    font-size: 1rem;
-                    font-weight: 400;
+                    border:1px solid #ebe9e6;
+                    padding: 0.25rem;
+    
+                    border-radius: 0.25rem;
+                    height:34px;
                 }
                 margin: 0;
                 @media(max-width:992px) {
@@ -411,7 +439,7 @@ $ua-border-light: #ddd;
         }
 
         .user-addresses-card__value {
-            font-size: 1rem;
+            font-size: 10px;
             font-weight: 400;
         }
     }
@@ -422,11 +450,12 @@ $ua-border-light: #ddd;
     margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.25rem !important;
+    gap: 0 !important;
     margin-bottom: 0.25rem !important;
     
     label {
-        font-size: 12px !important;
+        font-size: 10px !important;
+        margin-bottom: 0;
     }
     
     input, select {
@@ -447,6 +476,7 @@ $ua-border-light: #ddd;
             display: flex !important;
             gap: 0.5rem !important;
             font-size: 14px !important;
+            margin-bottom: 0.25rem !important;
         }
     }
 }
