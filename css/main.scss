@@ -1,1 +1,452 @@
-// User Addresses – style główne
+// =============================================================================
+// Zmienne wspólne
+// =============================================================================
+$ua-z-index-modal: 100000;
+$ua-backdrop-blur: rgba(255, 255, 255, 0.5);
+$ua-box-bg: #fff;
+$ua-box-border: #fcfcfc;
+$ua-box-radius: 0.5rem;
+$ua-box-shadow: 0.5rem 0.5rem 1rem rgba(0, 0, 0, 0.1);
+$ua-card-border: #cfcfcf;
+$ua-btn-orange: #ea631b;
+$ua-close-color: #555;
+$ua-close-hover: #000;
+$ua-body-color: #444;
+$ua-border-light: #ddd;
+
+// =============================================================================
+// Mixiny: modal (wspólna warstwa + backdrop + box)
+// =============================================================================
+@mixin modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: $ua-z-index-modal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+
+    &[hidden] {
+        display: none !important;
+    }
+}
+
+@mixin modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: $ua-backdrop-blur;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+}
+
+@mixin modal-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    max-width: calc(100% - 4rem);
+    max-height: calc(100% - 2rem);
+    overflow: auto;
+    background: $ua-box-bg;
+    padding: 2rem;
+    border: 1px solid $ua-box-border;
+    border-radius: $ua-box-radius;
+    box-shadow: $ua-box-shadow;
+}
+
+@mixin modal-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0;
+    border-bottom: none;
+
+    h3 {
+        margin: 0 !important;
+    }
+}
+
+@mixin modal-close-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: $ua-close-color;
+    background: none;
+    border: none;
+    cursor: pointer;
+    &:hover {
+        color: $ua-close-hover;
+    }
+}
+
+// =============================================================================
+// Karta adresu (wspólna dla panelu zarządzania i modala checkout)
+// =============================================================================
+.user-addresses-manage__card,
+.user-addresses-checkout-modal__card {
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid $ua-card-border;
+    border-radius: $ua-box-radius;
+    background: $ua-box-bg;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.user-addresses-manage__card-heading,
+.user-addresses-checkout-modal__card-heading {
+    font-weight: 500;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.user-addresses-manage__card-body,
+.user-addresses-checkout-modal__card-body {
+    font-size: 0.9rem;
+    color: $ua-body-color;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    flex-grow: 1;
+}
+
+.user-addresses-manage__card-actions,
+.user-addresses-checkout-modal__card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+
+    button,
+    .button {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 400;
+        border-radius: 1rem;
+        background: $ua-btn-orange !important;
+        color: #fff;
+    }
+}
+
+// =============================================================================
+// Lista adresów: etykieta nad wartością (panel + modal checkout)
+// =============================================================================
+.user-addresses-card {
+    &__row {
+        margin-bottom: 0.25rem;
+        &:last-child {
+            margin-bottom: 0.25rem;
+        }
+    }
+
+    &__label {
+        display: block;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 0rem !important;
+    }
+
+    &__value {
+        display: block;
+    }
+}
+
+// =============================================================================
+// Modal checkout – wybór adresu
+// =============================================================================
+.user-addresses-checkout-modal {
+    @include modal-overlay;
+
+    &__backdrop {
+        @include modal-backdrop;
+    }
+
+    &__box {
+        @include modal-box;
+    }
+
+    &__header {
+        @include modal-header;
+    }
+
+    &__title {
+        font-size: 1.25rem;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    &__manage {
+        text-decoration: none;
+    }
+
+    &__close {
+        @include modal-close-btn;
+    }
+
+    &__body {
+        padding: 0;
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 1rem;
+    }
+
+    &__item {
+        margin: 0;
+    }
+}
+
+// =============================================================================
+// Komunikat po zapisie adresu
+// =============================================================================
+.user-addresses-manage__notice {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 3px;
+    font-size: 0.95rem;
+
+    &--success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+}
+
+// =============================================================================
+// Modal „Dodaj adres” (ten sam wygląd co modal checkout – bez zagnieżdżonego nadpisywania)
+// =============================================================================
+.user-addresses-add-modal {
+    @include modal-overlay;
+
+    &__backdrop {
+        @include modal-backdrop;
+    }
+
+    &__box {
+        @include modal-box;
+    }
+
+    &__header {
+        @include modal-header;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    &__close {
+        @include modal-close-btn;
+    }
+
+    &__body {
+        padding: 1rem 1.25rem;
+    }
+
+    &__form {
+        .form-row-address.user-addresses-add-modal__type {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+
+            .label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
+
+            .checkbox {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                font-weight: normal;
+                cursor: pointer;
+
+                input {
+                    margin-right: 0.35rem;
+                    vertical-align: middle;
+                }
+            }
+        }
+
+        .form-row-address {
+            margin-bottom: 1rem;
+
+            &.form-row-address-first,
+            &.form-row-address-last {
+                display: inline-block;
+                width: 48%;
+                vertical-align: top;
+            }
+
+            &.form-row-address-first {
+                margin-right: 2%;
+            }
+
+            &.form-row-address-wide {
+                display: block;
+            }
+
+            
+                
+            
+        }
+
+       
+
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .required {
+            color: #c00;
+        }
+
+        .input-text,
+        .select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    }
+
+    &__footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid $ua-border-light;
+    }
+
+    &__submit {
+        cursor: pointer;
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// =============================================================================
+// Shortcode zarządzania: panel + przycisk
+// =============================================================================
+.user-addresses-manage {
+    .button {
+        background: $ua-btn-orange !important;
+    }
+
+    .user-addresses-manage__panel {
+        .user-addresses-manage__list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            list-style: none;
+            padding: 1.5rem 0 !important;
+
+            li {
+                min-width: 350px;
+
+                .user-addresses-card__value {
+                    font-size: 1rem;
+                    font-weight: 400;
+                }
+                margin: 0;
+                @media(max-width:992px) {
+                    width: 100%;
+                    min-width: 250px;
+                }
+            }
+        }
+
+        .user-addresses-manage__card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+}
+
+.user-addresses-checkout {
+    margin: 1.5rem 0;
+
+    .user-addresses-checkout-modal__box {
+        max-width: calc(100% - 2rem);
+        width: 100%;
+    }
+
+    .user-addresses-checkout-modal__manage {
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+
+    .user-addresses-checkout-modal__body .user-addresses-checkout-modal__list {
+        list-style: none;
+        margin: 1.5rem 0 !important;
+        padding: 0 !important;
+        display: flex;
+        flex-wrap: wrap;
+
+        li {
+            margin: 0 !important;
+            min-width: 250px;
+
+        }
+    }
+
+    .user-addresses-checkout-modal__card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .user-addresses-card__row {
+            margin: 0 !important;
+        }
+
+        .user-addresses-card__value {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+    }
+}
+
+
+.form-row-address {
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+    
+    label {
+        font-size: 12px !important;
+    }
+    
+    input, select {
+        border: 1px solid #cfcfcf !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 0.25rem !important;
+    }
+    
+    &.user-addresses-add-modal__type {
+        margin-top: 1.5rem !important;
+        
+        .label {
+            margin-bottom: 0.5rem !important;
+            display: block !important;
+        }
+        
+        .checkbox {
+            display: flex !important;
+            gap: 0.5rem !important;
+            font-size: 14px !important;
+        }
+    }
+}
